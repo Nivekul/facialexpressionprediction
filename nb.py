@@ -1,10 +1,7 @@
 import numpy as np
 from sklearn.naive_bayes import *
-from util import *
 
-inputs_train, inputs_valid, target_train, target_valid = LoadData('labeled_images.mat', 0.3)
-
-def GaussianNaiveBayes(partialFit = False):
+def GaussianNaiveBayes(inputs_train, inputs_valid, target_train, target_valid, partialFit = False):
 	name = "Gaussian Naive Bayes"
 	clf = GaussianNB()
 	if partialFit:
@@ -15,11 +12,12 @@ def GaussianNaiveBayes(partialFit = False):
 	prediction = clf.predict(inputs_valid)
 	# print prediction
 	correct = np.count_nonzero(np.ravel(target_valid) == prediction)
-	total, _ = target_valid.shape
-	print name, ": ", float(correct)/total
-	print "-"*71
+	total = target_valid.shape[0]
+	correctRate = (float(correct)/total)*100
 
-def MultinomialNaiveBayes(partialFit = False):
+	return name, correctRate
+
+def MultinomialNaiveBayes(inputs_train, inputs_valid, target_train, target_valid, partialFit = False):
 	name = "Multinomial Naive Bayes"
 	clf = MultinomialNB()
 	if partialFit:
@@ -29,11 +27,12 @@ def MultinomialNaiveBayes(partialFit = False):
 		clf.fit(inputs_train, np.ravel(target_train))
 	prediction = clf.predict(inputs_valid)
 	correct = np.count_nonzero(np.ravel(target_valid) == prediction)
-	total, _ = target_valid.shape
-	print name, ": ", float(correct)/total
-	print "-"*71
+	total = target_valid.shape[0]
+	correctRate = (float(correct)/total)*100
 
-def BernoulliNaiveBayes(partialFit = False):
+	return name, correctRate
+
+def BernoulliNaiveBayes(inputs_train, inputs_valid, target_train, target_valid, partialFit = False):
 	name = "Bernoulli Naive Bayes"
 	clf = BernoulliNB()
 	if partialFit:
@@ -43,9 +42,10 @@ def BernoulliNaiveBayes(partialFit = False):
 		clf.fit(inputs_train, np.ravel(target_train))
 	prediction = clf.predict(inputs_valid)
 	correct = np.count_nonzero(np.ravel(target_valid) == prediction)
-	total, _ = target_valid.shape
-	print name, ": ", float(correct)/total
-	print "-"*71
+	total = target_valid.shape[0]
+	correctRate = (float(correct)/total)*100
+
+	return name, correctRate
 
 if __name__ == '__main__':
 	np.set_printoptions(threshold=np.nan)

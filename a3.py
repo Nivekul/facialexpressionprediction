@@ -11,6 +11,9 @@ from sklearn.datasets import load_digits
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cross_validation import LabelKFold
 
+from ovo import *
+from svm import *
+from nb import *
 
 def loadMatFile(filename):
 	"""
@@ -31,33 +34,13 @@ def generateDataByIndex(train_index, valid_index, image_data, labels):
 	"""
 	Generate data sets by index
 
-	train_index: np array 
+	train_index: np array
 
 	"""
-	train_data = np.array([])
-	valid_data = np.array([])
-	train_label = np.array([])
-	valid_label = np.array([])
-	td_size = len(train_index)
-	vd_size = len(valid_index)
-
-	for index in range(image_data.shape[0]):
-		if index in train_index:
-			train_data = np.append(train_data, image_data[index])
-			train_label = np.append(train_label, labels[index])
-		elif index in valid_index:
-			valid_data = np.append(valid_data, image_data[index])
-			valid_label = np.append(valid_label, labels[index])	
-		# print index
-	# print td_size
-	# print vd_size
-
-	train_data = train_data.reshape([td_size,1024])
-	train_label = train_label.reshape([td_size,])
-	# print train_label
-	valid_data = valid_data.reshape([vd_size,1024])
-	valid_label = valid_label.reshape([vd_size,])
-	# print valid_label
+	train_data = image_data[train_index]
+	valid_data = image_data[valid_index]
+	train_label = labels[train_index]
+	valid_label = labels[valid_index]
 	return train_data, valid_data, train_label, valid_label
 
 
@@ -75,13 +58,26 @@ def plotCorrectness(correctness, plot_title):
 	plt.plot(x, y, ".")
 	plt.show()
 
+def addResult(algo, name, correctRate):
+	if name in algo:
+		_ = algo[name]
+		_.append(correctRate)
+		algo[name] = _
+	else:
+		algo[name] = [correctRate]
+
+def printResult(algo):
+	print "-"*71
+	for name in algo:
+		print name, ": ", sum(algo[name])/float(len(algo[name]))
+		print "-"*71
 
 if __name__ == '__main__':
 	kValue = [2,4,6,8,10]
 	# load data from .mat file
-	# returns a dictionary with keys 
+	# returns a dictionary with keys
 	# ['__globals__', 'tr_labels', '__header__', 'tr_identity', '__version__', 'tr_images']
-	image_data, labels, identity = loadMatFile('../a3data/labeled_images.mat')
+	image_data, labels, identity = loadMatFile('labeled_images.mat')
 
 	# # ramdom select data from data set as traina and validation sets
 	# data_train, data_valid, label_train, label_valid = train_test_split(image_data, labels, test_size=0.33, random_state=42)
@@ -106,7 +102,24 @@ if __name__ == '__main__':
 	# c = {8: 52.478632478632484, 2: 51.28205128205128, 4: 53.53846153846154, 10: 52.78632478632479, 6: 53.641025641025635}
 	plotCorrectness(c, plot_title)
 
+	algo = {}
+	for train, valid in lkf:
+		train_data, valid_data, train_label, valid_label = generateDataByIndex(train, valid, image_data, labels)
 
+		name, correctRate = OneVsOne(train_data, valid_data, train_label, valid_label)
+		addResult(algo, name, correctRate)
+		print "Finished " + name
+		name, correctRate = linearSVM(train_data, valid_data, train_label, valid_label)
+		addResult(algo, name, correctRate)
+		print "Finished " + name
+		name, correctRate = GaussianNaiveBayes(train_data, valid_data, train_label, valid_label)
+		addResult(algo, name, correctRate)
+		print "Finished " + name
+		name, correctRate = MultinomialNaiveBayes(train_data, valid_data, train_label, valid_label)
+		addResult(algo, name, correctRate)
+		print "Finished " + name
+		name, correctRate = BernoulliNaiveBayes(train_data, valid_data, train_label, valid_label)
+		addResult(algo, name, correctRate)
+		print "Finished " + name
 
-
-
+	printResult(algo)
